@@ -64,6 +64,8 @@ public protocol TrimmerViewDelegate: class {
     private let leftHandleView = HandlerView()
     private let rightHandleView = HandlerView()
     private let positionBar = UIView()
+    private let timeView = UIView()
+    private let timeLabel = UILabel()
     private let leftHandleKnob = UIView()
     private let rightHandleKnob = UIView()
     private let leftMaskView = UIView()
@@ -94,6 +96,7 @@ public protocol TrimmerViewDelegate: class {
         setupHandleView()
         setupMaskView()
         setupPositionBar()
+        setupTimeView()
         setupGestures()
         updateMainColor()
         updateHandleColor()
@@ -201,6 +204,32 @@ public protocol TrimmerViewDelegate: class {
         positionConstraint = positionBar.leftAnchor.constraint(equalTo: leftHandleView.rightAnchor, constant: 0)
         positionConstraint?.isActive = true
     }
+    
+    private func setupTimeView() {
+        timeView.frame = CGRect(x: 0, y: 0, width: 38, height: 15)
+        timeView.isHidden = true
+        timeView.backgroundColor = .black
+        timeView.center = CGPoint(x: positionBar.center.x, y: -8)
+        timeView.layer.cornerRadius = 2
+        timeView.translatesAutoresizingMaskIntoConstraints = false
+        timeView.isUserInteractionEnabled = false
+        addSubview(timeView)
+        layer.masksToBounds = false
+        timeView.centerXAnchor.constraint(equalTo: positionBar.centerXAnchor).isActive = true
+        timeView.bottomAnchor.constraint(equalTo: trimView.topAnchor, constant: -8).isActive = true
+        timeView.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        timeView.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        
+        timeLabel.frame = CGRect(x: 0, y: 0, width: 38, height: 15)
+        timeLabel.textColor = .white
+        timeLabel.textAlignment = .center
+        timeLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        timeView.addSubview(timeLabel)
+        timeLabel.centerXAnchor.constraint(equalTo: timeView.centerXAnchor).isActive = true
+        timeLabel.centerYAnchor.constraint(equalTo: timeView.centerYAnchor).isActive = true
+        timeLabel.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        timeLabel.heightAnchor.constraint(equalToConstant: 15).isActive = true
+    }
 
     private func setupGestures() {
 
@@ -229,6 +258,7 @@ public protocol TrimmerViewDelegate: class {
         switch gestureRecognizer.state {
 
         case .began:
+            timeView.isHidden = false
             if isLeftGesture {
                 currentLeftConstraint = leftConstraint!.constant
             } else {
@@ -251,6 +281,7 @@ public protocol TrimmerViewDelegate: class {
             updateSelectedTime(stoppedMoving: false)
 
         case .cancelled, .ended, .failed:
+            timeView.isHidden = true
             updateSelectedTime(stoppedMoving: true)
         default: break
         }
@@ -312,6 +343,9 @@ public protocol TrimmerViewDelegate: class {
         guard let playerTime = positionBarTime else {
             return
         }
+        let currentTime = CMTimeGetSeconds(playerTime)
+        let secs = Int(currentTime)
+        timeLabel.text = NSString(format: "%02d:%02d", secs/60, secs%60) as String
         if stoppedMoving {
             delegate?.positionBarStoppedMoving(playerTime)
         } else {
