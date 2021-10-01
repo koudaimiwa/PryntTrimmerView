@@ -287,15 +287,25 @@ public protocol TrimmerViewDelegate: class {
         }
     }
 
-    private func updateLeftConstraint(with translation: CGPoint) {
+    private func updateLeftConstraint(with translation: CGPoint, callFromMethod: Bool = false) {
         let maxConstraint = max(rightHandleView.frame.origin.x - handleWidth - minimumDistanceBetweenHandle, 0)
-        let newConstraint = min(max(0, currentLeftConstraint + translation.x), maxConstraint)
+        let newConstraint: CGFloat
+        if callFromMethod {
+            newConstraint = min(max(0, translation.x), maxConstraint)
+        } else {
+            newConstraint = min(max(0, currentLeftConstraint + translation.x), maxConstraint)
+        }
         leftConstraint?.constant = newConstraint
     }
 
-    private func updateRightConstraint(with translation: CGPoint) {
+    private func updateRightConstraint(with translation: CGPoint, callFromMethod: Bool = false) {
         let maxConstraint = min(2 * handleWidth - frame.width + leftHandleView.frame.origin.x + minimumDistanceBetweenHandle, 0)
-        let newConstraint = max(min(0, currentRightConstraint + translation.x), maxConstraint)
+        let newConstraint: CGFloat
+        if callFromMethod {
+            newConstraint = max(min(0, translation.x - trimView.frame.width + (handleWidth * 2)), maxConstraint)
+        } else {
+            newConstraint = max(min(0, currentRightConstraint + translation.x), maxConstraint)
+        }
         rightConstraint?.constant = newConstraint
     }
 
@@ -326,6 +336,16 @@ public protocol TrimmerViewDelegate: class {
             layoutIfNeeded()
         }
     }
+    
+    public func setTrimRange(from offset: CGFloat, startTime: CMTime, endTime: CMTime) {
+        scrollViewContentOffsetX = offset
+        updateRightConstraint(with: CGPoint(x: getPosition(from: endTime)! - offset, y: 0), callFromMethod: true)
+        
+        updateLeftConstraint(with: CGPoint(x: getPosition(from: startTime)! - offset, y: 0), callFromMethod: true)
+        layoutIfNeeded()
+        seek(to: startTime)
+        updateSelectedTime(stoppedMoving: true)
+    }
 
     /// The selected start time for the current asset.
     public var startTime: CMTime? {
@@ -337,6 +357,16 @@ public protocol TrimmerViewDelegate: class {
     public var endTime: CMTime? {
         let endPosition = rightHandleView.frame.origin.x + assetPreview.contentOffset.x - handleWidth
         return getTime(from: endPosition)
+    }
+    
+    public var scrollViewContentOffsetX: CGFloat {
+        get {
+            return assetPreview.contentOffset.x
+        }
+        
+        set {
+            assetPreview.setContentOffset(CGPoint(x: newValue, y: 0), animated: false)
+        }
     }
 
     private func updateSelectedTime(stoppedMoving: Bool) {
