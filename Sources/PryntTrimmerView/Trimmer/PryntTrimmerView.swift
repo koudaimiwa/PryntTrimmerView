@@ -20,34 +20,33 @@ public protocol TrimmerViewDelegate: class {
 /// Load the video by setting the `asset` property. Access the `startTime` and `endTime` of the view to get the selected time
 // range
 @IBDesignable public class TrimmerView: AVAssetTimeSelector {
-
     // MARK: - Properties
 
     // MARK: Color Customization
 
     /// The color of the main border of the view
-    @IBInspectable public var mainColor: UIColor = UIColor.orange {
+    @IBInspectable public var mainColor: UIColor = .orange {
         didSet {
             updateMainColor()
         }
     }
 
     /// The color of the handles on the side of the view
-    @IBInspectable public var handleColor: UIColor = UIColor.gray {
+    @IBInspectable public var handleColor: UIColor = .gray {
         didSet {
-           updateHandleColor()
+            updateHandleColor()
         }
     }
 
     /// The color of the position indicator
-    @IBInspectable public var positionBarColor: UIColor = UIColor.white {
+    @IBInspectable public var positionBarColor: UIColor = .white {
         didSet {
             positionBar.backgroundColor = positionBarColor
         }
     }
 
     /// The color used to mask unselected parts of the video
-    @IBInspectable public var maskColor: UIColor = UIColor.white {
+    @IBInspectable public var maskColor: UIColor = .white {
         didSet {
             leftMaskView.backgroundColor = maskColor
             rightMaskView.backgroundColor = maskColor
@@ -125,7 +124,6 @@ public protocol TrimmerViewDelegate: class {
     }
 
     private func setupHandleView() {
-
         leftHandleView.isUserInteractionEnabled = true
         leftHandleView.layer.cornerRadius = 2.0
         leftHandleView.translatesAutoresizingMaskIntoConstraints = false
@@ -164,7 +162,6 @@ public protocol TrimmerViewDelegate: class {
     }
 
     private func setupMaskView() {
-
         leftMaskView.isUserInteractionEnabled = false
         leftMaskView.backgroundColor = .white
         leftMaskView.alpha = 0.7
@@ -189,7 +186,6 @@ public protocol TrimmerViewDelegate: class {
     }
 
     private func setupPositionBar() {
-
         positionBar.frame = CGRect(x: 0, y: 0, width: 3, height: frame.height)
         positionBar.backgroundColor = positionBarColor
         positionBar.center = CGPoint(x: leftHandleView.frame.maxX, y: center.y)
@@ -204,7 +200,7 @@ public protocol TrimmerViewDelegate: class {
         positionConstraint = positionBar.leftAnchor.constraint(equalTo: leftHandleView.rightAnchor, constant: 0)
         positionConstraint?.isActive = true
     }
-    
+
     private func setupTimeView() {
         timeView.frame = CGRect(x: 0, y: 0, width: 38, height: 15)
         timeView.isHidden = true
@@ -219,7 +215,7 @@ public protocol TrimmerViewDelegate: class {
         timeView.bottomAnchor.constraint(equalTo: trimView.topAnchor, constant: -8).isActive = true
         timeView.widthAnchor.constraint(equalToConstant: 38).isActive = true
         timeView.heightAnchor.constraint(equalToConstant: 15).isActive = true
-        
+
         timeLabel.frame = CGRect(x: 0, y: 0, width: 38, height: 15)
         timeLabel.textColor = .white
         timeLabel.textAlignment = .center
@@ -232,7 +228,6 @@ public protocol TrimmerViewDelegate: class {
     }
 
     private func setupGestures() {
-
         let leftPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
         leftHandleView.addGestureRecognizer(leftPanGestureRecognizer)
         let rightPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
@@ -256,7 +251,6 @@ public protocol TrimmerViewDelegate: class {
         guard let view = gestureRecognizer.view, let superView = gestureRecognizer.view?.superview else { return }
         let isLeftGesture = view == leftHandleView
         switch gestureRecognizer.state {
-
         case .began:
             timeView.isHidden = false
             if isLeftGesture {
@@ -327,21 +321,21 @@ public protocol TrimmerViewDelegate: class {
     /// Move the position bar to the given time.
     public func seek(to time: CMTime) {
         if let newPosition = getPosition(from: time) {
-
             let offsetPosition = newPosition - assetPreview.contentOffset.x - leftHandleView.frame.origin.x
             let maxPosition = rightHandleView.frame.origin.x - (leftHandleView.frame.origin.x + handleWidth)
-                              - positionBar.frame.width
+                - positionBar.frame.width
             let normalizedPosition = min(max(0, offsetPosition), maxPosition)
             positionConstraint?.constant = normalizedPosition
             layoutIfNeeded()
         }
     }
-    
+
     public func setTrimRange(from offset: CGFloat, startTime: CMTime, endTime: CMTime) {
+        guard let endPosition = getPosition(from: endTime), let startPosition = getPosition(from: startTime) else { return }
         scrollViewContentOffsetX = offset
-        updateRightConstraint(with: CGPoint(x: getPosition(from: endTime)! - offset, y: 0), callFromMethod: true)
-        
-        updateLeftConstraint(with: CGPoint(x: getPosition(from: startTime)! - offset, y: 0), callFromMethod: true)
+        updateRightConstraint(with: CGPoint(x: endPosition - offset, y: 0), callFromMethod: true)
+
+        updateLeftConstraint(with: CGPoint(x: startPosition - offset, y: 0), callFromMethod: true)
         layoutIfNeeded()
         seek(to: startTime)
         updateSelectedTime(stoppedMoving: true)
@@ -358,12 +352,12 @@ public protocol TrimmerViewDelegate: class {
         let endPosition = rightHandleView.frame.origin.x + assetPreview.contentOffset.x - handleWidth
         return getTime(from: endPosition)
     }
-    
+
     public var scrollViewContentOffsetX: CGFloat {
         get {
             return assetPreview.contentOffset.x
         }
-        
+
         set {
             assetPreview.setContentOffset(CGPoint(x: newValue, y: 0), animated: false)
         }
@@ -375,7 +369,7 @@ public protocol TrimmerViewDelegate: class {
         }
         let currentTime = CMTimeGetSeconds(playerTime)
         let secs = Int(currentTime)
-        timeLabel.text = NSString(format: "%02d:%02d", secs/60, secs%60) as String
+        timeLabel.text = NSString(format: "%02d:%02d", secs / 60, secs % 60) as String
         if stoppedMoving {
             delegate?.positionBarStoppedMoving(playerTime)
         } else {
@@ -404,6 +398,7 @@ public protocol TrimmerViewDelegate: class {
             updateSelectedTime(stoppedMoving: true)
         }
     }
+
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateSelectedTime(stoppedMoving: false)
     }
