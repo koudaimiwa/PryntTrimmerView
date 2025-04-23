@@ -10,7 +10,6 @@ import AVFoundation
 import UIKit
 
 class AssetVideoScrollView: UIScrollView {
-
     private var widthConstraint: NSLayoutConstraint?
 
     let contentView = UIView()
@@ -28,7 +27,6 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func setupSubviews() {
-
         backgroundColor = .clear
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false
@@ -51,7 +49,7 @@ class AssetVideoScrollView: UIScrollView {
         contentSize = contentView.bounds.size
     }
 
-    internal func regenerateThumbnails(for asset: AVAsset) {
+    func regenerateThumbnails(for asset: AVAsset) {
         guard let thumbnailSize = getThumbnailFrameSize(from: asset), thumbnailSize.width != 0 else {
             print("Could not calculate the thumbnail size.")
             return
@@ -68,7 +66,7 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func getThumbnailFrameSize(from asset: AVAsset) -> CGSize? {
-        guard let track = asset.tracks(withMediaType: AVMediaType.video).first else { return nil}
+        guard let track = asset.tracks(withMediaType: AVMediaType.video).first else { return nil }
 
         let assetSize = track.naturalSize.applying(track.preferredTransform)
 
@@ -79,12 +77,12 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func removeFormerThumbnails() {
-        contentView.subviews.forEach({ $0.removeFromSuperview() })
+        contentView.subviews.forEach { $0.removeFromSuperview() }
     }
 
     private func setContentSize(for asset: AVAsset) -> CGSize {
-
-        let contentWidthFactor = CGFloat(max(1, asset.duration.seconds / maxDuration))
+        let durationInSeconds = CMTimeGetSeconds(asset.duration)
+        let contentWidthFactor = CGFloat(max(1, durationInSeconds / maxDuration))
         widthConstraint?.isActive = false
         widthConstraint = contentView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: contentWidthFactor)
         widthConstraint?.isActive = true
@@ -93,9 +91,7 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func addThumbnailViews(_ count: Int, size: CGSize) {
-
-        for index in 0..<count {
-
+        for index in 0 ..< count {
             let thumbnailView = UIImageView(frame: CGRect.zero)
             thumbnailView.clipsToBounds = true
 
@@ -118,7 +114,7 @@ class AssetVideoScrollView: UIScrollView {
     private func getThumbnailTimes(for asset: AVAsset, numberOfThumbnails: Int) -> [NSValue] {
         let timeIncrement = (asset.duration.seconds * 1000) / Double(numberOfThumbnails)
         var timesForThumbnails = [NSValue]()
-        for index in 0..<numberOfThumbnails {
+        for index in 0 ..< numberOfThumbnails {
             let cmTime = CMTime(value: Int64(timeIncrement * Float64(index)), timescale: 1000)
             let nsValue = NSValue(time: cmTime)
             timesForThumbnails.append(nsValue)
@@ -134,16 +130,16 @@ class AssetVideoScrollView: UIScrollView {
         generator?.maximumSize = scaledSize
         var count = 0
 
-        let handler: AVAssetImageGeneratorCompletionHandler = { [weak self] (_, cgimage, _, result, error) in
+        let handler: AVAssetImageGeneratorCompletionHandler = { [weak self] _, cgimage, _, result, error in
             if let cgimage = cgimage, error == nil && result == AVAssetImageGenerator.Result.succeeded {
-                DispatchQueue.main.async(execute: { [weak self] () -> Void in
+                DispatchQueue.main.async { [weak self] () in
 
                     if count == 0 {
                         self?.displayFirstImage(cgimage, visibleThumbnails: visibleThumnails)
                     }
                     self?.displayImage(cgimage, at: count)
                     count += 1
-                })
+                }
             }
         }
 
@@ -151,7 +147,7 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     private func displayFirstImage(_ cgImage: CGImage, visibleThumbnails: Int) {
-        for i in 0...visibleThumbnails {
+        for i in 0 ... visibleThumbnails {
             displayImage(cgImage, at: i)
         }
     }
