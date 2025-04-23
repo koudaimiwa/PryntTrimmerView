@@ -121,6 +121,11 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightConstraint = trimView.rightAnchor.constraint(equalTo: rightAnchor)
         leftConstraint?.isActive = true
         rightConstraint?.isActive = true
+
+        // レイアウトの更新を確実に行う
+        DispatchQueue.main.async { [weak self] in
+            self?.layoutIfNeeded()
+        }
     }
 
     private func setupHandleView() {
@@ -273,7 +278,6 @@ public protocol TrimmerViewDelegate: AnyObject {
                 seek(to: endTime)
             }
             updateSelectedTime(stoppedMoving: false)
-
         case .cancelled, .ended, .failed:
             timeView.isHidden = true
             updateSelectedTime(stoppedMoving: true)
@@ -389,17 +393,17 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     // MARK: - Scroll View Delegate
 
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    public func scrollViewDidEndDecelerating(_: UIScrollView) {
         updateSelectedTime(stoppedMoving: true)
     }
 
-    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    public func scrollViewDidEndDragging(_: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             updateSelectedTime(stoppedMoving: true)
         }
     }
 
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    public func scrollViewDidScroll(_: UIScrollView) {
         updateSelectedTime(stoppedMoving: false)
     }
 }
