@@ -87,6 +87,11 @@ class AssetVideoScrollView: UIScrollView {
         widthConstraint = contentView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: contentWidthFactor)
         widthConstraint?.isActive = true
         layoutIfNeeded()
+
+        // 明示的にcontentViewのサイズを設定
+        let contentWidth = bounds.width * contentWidthFactor
+        contentView.frame.size = CGSize(width: contentWidth, height: bounds.height)
+
         return contentView.bounds.size
     }
 
