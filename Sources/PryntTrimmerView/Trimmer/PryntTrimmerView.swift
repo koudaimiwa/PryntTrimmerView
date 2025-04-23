@@ -121,11 +121,6 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightConstraint = trimView.rightAnchor.constraint(equalTo: rightAnchor)
         leftConstraint?.isActive = true
         rightConstraint?.isActive = true
-
-        // レイアウトの更新を確実に行う
-        DispatchQueue.main.async { [weak self] in
-            self?.layoutIfNeeded()
-        }
     }
 
     private func setupHandleView() {
@@ -154,8 +149,9 @@ public protocol TrimmerViewDelegate: AnyObject {
 
         rightHandleView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
         rightHandleView.widthAnchor.constraint(equalToConstant: handleWidth).isActive = true
-        rightHandleView.rightAnchor.constraint(equalTo: trimView.rightAnchor).isActive = true
         rightHandleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+
+        rightHandleView.rightAnchor.constraint(equalTo: trimView.rightAnchor).isActive = true
 
         rightHandleKnob.translatesAutoresizingMaskIntoConstraints = false
         rightHandleView.addSubview(rightHandleKnob)
@@ -164,6 +160,10 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightHandleKnob.widthAnchor.constraint(equalToConstant: 2).isActive = true
         rightHandleKnob.centerYAnchor.constraint(equalTo: rightHandleView.centerYAnchor).isActive = true
         rightHandleKnob.centerXAnchor.constraint(equalTo: rightHandleView.centerXAnchor).isActive = true
+
+        DispatchQueue.main.async { [weak self] in
+            self?.layoutIfNeeded()
+        }
     }
 
     private func setupMaskView() {
