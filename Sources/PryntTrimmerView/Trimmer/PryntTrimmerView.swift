@@ -101,11 +101,6 @@ public protocol TrimmerViewDelegate: AnyObject {
         updateHandleColor()
     }
 
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        assetPreview.frame = bounds
-    }
-
     override func constrainAssetPreview() {
         assetPreview.leftAnchor.constraint(equalTo: leftAnchor, constant: handleWidth).isActive = true
         assetPreview.rightAnchor.constraint(equalTo: rightAnchor, constant: -handleWidth).isActive = true

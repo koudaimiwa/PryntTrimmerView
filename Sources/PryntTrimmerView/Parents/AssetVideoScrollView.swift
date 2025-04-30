@@ -50,6 +50,13 @@ class AssetVideoScrollView: UIScrollView {
     }
 
     func regenerateThumbnails(for asset: AVAsset) {
+        // frame.heightが0の場合はレイアウト確定後に再実行
+        if frame.height == 0 {
+            DispatchQueue.main.async { [weak self] in
+                self?.regenerateThumbnails(for: asset)
+            }
+            return
+        }
         guard let thumbnailSize = getThumbnailFrameSize(from: asset), thumbnailSize.width != 0 else {
             print("Could not calculate the thumbnail size.")
             return
